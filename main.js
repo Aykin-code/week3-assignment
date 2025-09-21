@@ -13,19 +13,23 @@
 //
 
 // VARIABLES AND CONSTANTS HERE
-
-// Cookie Clicker Game - With Auto-Clicker Support
 let cookieCount = 0;
 let cookiesPerClick = 1;
 let cookiesPerSecond = 0;
 let upgrades = [];
-let upgradeCounts = {}; // Track how many times each upgrade was purchased
+let upgradeCounts = {};
 
 const cookieButton = document.getElementById("cookie");
 const cookieDisplay = document.getElementById("cookie-count");
 const shopContainer = document.getElementById("shop");
 
-// Load saved game from localStorage
+// click sound vars here
+const clickSound = new Audio("assets/click.mp3");
+let soundOn = true;
+
+// Load saved game from localStorage - this part is driving me nuts, @Sam & Connor!
+// had to goole and MDN this alot and I still don't fully understand it
+
 function loadGame() {
   const savedData = JSON.parse(localStorage.getItem("cookieGame"));
 
@@ -33,7 +37,7 @@ function loadGame() {
     const parsedCount = Number(savedData.cookieCount);
     const parsedCPC = Number(savedData.cookiesPerClick);
     const parsedAuto = Number(savedData.cookieAuto);
-
+    // kept getting Nan error so googled this to fix it
     cookieCount = isNaN(parsedCount) || parsedCount < 0 ? 0 : parsedCount;
     cookiesPerClick = isNaN(parsedCPC) || parsedCPC < 1 ? 1 : parsedCPC;
     cookiesPerSecond = isNaN(parsedAuto) || parsedAuto < 0 ? 0 : parsedAuto;
@@ -73,6 +77,19 @@ function updateDisplay() {
 // Add cookies on click
 function clickCookie() {
   cookieCount += cookiesPerClick;
+
+  //   cookieCount += cookieCount;
+  console.log("Click registered", cookiesPerClick);
+  console.log(typeof cookiesPerClick, cookiesPerClick);
+  console.log(typeof cookieCount, cookieCount);
+  console.log("cookie count=", cookieCount);
+  console.log("per click=", cookiesPerClick);
+
+  //   add click sound here
+  if (soundOn) {
+    clickSound.currentTime = 0; // rewind to start
+    clickSound.play();
+  }
   updateDisplay();
   saveGame();
 }
@@ -83,7 +100,9 @@ function purchaseUpgrade(upgrade) {
   const auto = Number(upgrade.increase);
 
   if (cookieCount < cost) {
-    alert("Not enough cookies to purchase upgrade.");
+    alert(
+      "Not enough cookies to purchase upgrade. Maybe pop to tesco and get some more."
+    );
     return;
   }
 
@@ -116,7 +135,7 @@ function renderShop() {
   });
 }
 
-// Fetch upgrades from API
+// Fetch upgrades list from API
 async function fetchUpgrades() {
   try {
     const res = await fetch(
@@ -132,7 +151,7 @@ async function fetchUpgrades() {
 
     renderShop();
   } catch (err) {
-    console.error("Failed to load upgrades", err);
+    console.error("Failed to load upgrades, I blame Connor!", err);
   }
 }
 
@@ -178,4 +197,5 @@ document.getElementById("new-game").addEventListener("click", () => {
 cookieButton.addEventListener("click", clickCookie);
 loadGame();
 fetchUpgrades();
+// interval in milliseconds 1000 = 1 second
 setInterval(autoIncrement, 1000);
